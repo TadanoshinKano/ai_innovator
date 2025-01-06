@@ -8,6 +8,9 @@ interface Content {
   description: string;
   thumbnail_url?: string;
   access_level: 'public' | 'authenticated';
+  video_url: string;
+  chapter_id: number;
+  sort_order: number;
 }
 
 interface ContentCardProps {

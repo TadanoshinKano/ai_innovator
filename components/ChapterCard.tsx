@@ -4,18 +4,19 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 
 interface Chapter {
-  id: number;
+  id: number; // 次のコンテンツのID
   title: string;
   thumbnail_url: string;
 }
 
 interface ChapterCardProps {
   chapter: Chapter;
+  currentChapterId: number; // 現在のチャプターID
 }
 
-const ChapterCard: React.FC<ChapterCardProps> = ({ chapter }) => {
+const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, currentChapterId }) => {
   return (
-    <Link href={`/videos/${chapter.id}`}>
+    <Link href={`/videos/${currentChapterId}/content/${chapter.id}`}>
       <motion.div
         whileHover={{ y: -5 }}
         whileTap={{ scale: 0.98 }}

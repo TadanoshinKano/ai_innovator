@@ -1,22 +1,30 @@
-'use client'
+// app/profile/page.tsx
+
+'use client';
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../../components/AuthContext'
-import { supabase } from '../lib/supabase'
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react' // フックをインポート
 import { useRouter } from 'next/navigation'
-
+  
 export default function ProfilePage() {
-  const { user, loading } = useAuth()
+  const supabase = useSupabaseClient() // Supabase クライアントを取得
+  const session = useSession() // セッション情報を取得
+  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+
+  const user = session?.user ?? null
+  const loading = session === undefined
 
   const fetchUserProfile = useCallback(async () => {
+    if (!user) return
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('username')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .maybeSingle()
   
       console.log('Supabase fetch result:', { data, error })
@@ -30,25 +38,24 @@ export default function ProfilePage() {
       if (data) {
         setName(data.username || '')
       } else {
-        console.warn('No profile data found for user:', user?.id)
+        console.warn('No profile data found for user:', user.id)
         setName('')
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
-  }, [user?.id, supabase])
+  }, [user, supabase])
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
     } else if (user) {
       setEmail(user.email || '')
-      console.log('Auth user id:', user?.id)
-      console.log('Checking profiles for user_id:', String(user?.id))
+      console.log('Auth user id:', user.id)
+      console.log('Checking profiles for user_id:', String(user.id))
       fetchUserProfile()
     }
   }, [user, loading, router, fetchUserProfile])
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,14 +64,14 @@ export default function ProfilePage() {
       alert('ユーザー認証に失敗しました。再度ログインしてください。')
       return
     }
-    console.log('user?.id:', user?.id);
+    console.log('user?.id:', user.id);
     console.log('username:', name); // ここをusernameに変更
     try {
       // profilesテーブルを更新する処理
       const { error } = await supabase
         .from('profiles')
         .upsert(
-          { user_id: user?.id, username: name }, // ここをusernameに変更
+          { user_id: user.id, username: name }, // ここをusernameに変更
           { onConflict: 'user_id' }
         )
 
@@ -77,9 +84,6 @@ export default function ProfilePage() {
       alert('プロフィールの更新中にエラーが発生しました: ' + (error as Error).message)
     }
   }
-
-
-
 
   if (loading) return <div className="flex justify-center items-center h-screen">読み込み中...</div>
   if (!user) return null

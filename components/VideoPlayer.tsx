@@ -1,3 +1,4 @@
+// components/VideoPlayer.tsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -19,13 +20,8 @@ export default function VideoPlayer({
   const playerRef = useRef<ReactPlayer>(null);
 
   const [error, setError] = useState<string | null>(null);
-
   const [duration, setDuration] = useState<number>(0);
   const [lastPosition, setLastPosition] = useState<number>(0);
-  // const [watchCount, setWatchCount] = useState<number>(0);
-  // const [completed, setCompleted] = useState<boolean>(false);
-
-  // 「一度だけシークする」ためのフラグ
   const [hasSeeked, setHasSeeked] = useState<boolean>(false);
 
   const supabase = useSupabaseClient();
@@ -38,13 +34,14 @@ export default function VideoPlayer({
    * 視聴状況をDBから取得 or なければ作成する
    */
   useEffect(() => {
+    console.log('useEffect session:', session);
     if (session?.user) {
       initializeWatchStatus();
     } else {
       console.error('ユーザーがログインしていません。');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user, videoId]);
+  }, [session?.user, videoId, session]);
 
   /**
    * DBから視聴状況を取得 (なければ新規作成)
@@ -132,6 +129,7 @@ export default function VideoPlayer({
         last_position: currentPosition,
         completed: isCompleted,
         completion_rate: completionRate,
+        last_watched_at: new Date().toISOString(),
       })
       .eq('user_id', session.user.id)
       .eq('video_id', videoId)
@@ -150,8 +148,6 @@ export default function VideoPlayer({
    * 前回の lastPosition に1回だけシーク
    */
   const handleReady = () => {
-    // setLoading(false);
-
     const player = playerRef.current?.getInternalPlayer();
     if (player instanceof HTMLVideoElement) {
       console.log('Video Dimensions:', player.videoWidth, player.videoHeight);
@@ -170,7 +166,6 @@ export default function VideoPlayer({
    * 動画読み込みエラー
    */
   const handleError = (e: any) => {
-    // setLoading(false);
     setError('動画の読み込みに失敗しました。');
     console.error('動画の読み込みエラー:', e);
   };
@@ -179,38 +174,39 @@ export default function VideoPlayer({
   if (session === undefined) {
     return <div>Loading session...</div>;
   }
+  console.log('session after loading check:', session);
 
   return (
     <div className="player-wrapper">
       {error && <div className="error-message">{error}</div>}
-      {!session?.user && (
+      {session?.user ? (
+        <div className="video-container">
+          <ReactPlayer
+            ref={playerRef}
+            url={videoUrl}
+            controls
+            onReady={handleReady}
+            onProgress={handleProgress}
+            onError={handleError}
+            width="100%"
+            height="100%"
+            className="react-player"
+            // light={thumbnail_url} // サムネを使いたい場合はコメント解除。ただし挙動が変わる場合あり
+            config={{
+              file: {
+                attributes: {
+                  // ▼ ダウンロード/ピクチャインピクチャを無効化する設定
+                  controlsList: 'nodownload',
+                  disablePictureInPicture: true,
+                  onContextMenu: (e: React.MouseEvent<HTMLVideoElement>) => e.preventDefault(),
+                },
+              },
+            }}
+          />
+        </div>
+      ) : (
         <div className="error-message">ユーザーがログインしていません。</div>
       )}
-
-      <div className="video-container">
-        <ReactPlayer
-          ref={playerRef}
-          url={videoUrl}
-          controls
-          onReady={handleReady}
-          onProgress={handleProgress}
-          onError={handleError}
-          width="100%"
-          height="100%"
-          className="react-player"
-          // light={thumbnail_url} // サムネを使いたい場合はコメント解除。ただし挙動が変わる場合あり
-          config={{
-            file: {
-              attributes: {
-                // ▼ ダウンロード/ピクチャインピクチャを無効化する設定
-                controlsList: 'nodownload',
-                disablePictureInPicture: true,
-                onContextMenu: (e: React.MouseEvent<HTMLVideoElement>) => e.preventDefault(),
-              },
-            },
-          }}
-        />
-      </div>
     </div>
   );
 }

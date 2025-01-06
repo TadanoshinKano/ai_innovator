@@ -1,12 +1,13 @@
+// app/dashboard/page.tsx
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User } from '@supabase/supabase-js';
-import Image from 'next/image';
+import { User } from '@supabase/supabase-js'
+import Image from 'next/image'
 
 interface WatchHistoryItem {
   video_id: string
@@ -15,19 +16,18 @@ interface WatchHistoryItem {
     title: string
     thumbnail_url: string
   }
-  chapter_id: string;
-  sort_order: number;
+  chapter_id: string
+  sort_order: number
 }
 
 interface VideoDetails {
   [key: string]: {
-    title: string;
-    thumbnail_url: string;
-    chapter_id: string;
-    sort_order: number;
-  };
+    title: string
+    thumbnail_url: string
+    chapter_id: string
+    sort_order: number
+  }
 }
-
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -42,7 +42,6 @@ export default function Dashboard() {
         setUser(user)
         console.log('user', user)
         fetchWatchHistory(user.id)
-        fetchUsername(user.id)
       } else {
         router.push('/login')
       }
@@ -50,6 +49,11 @@ export default function Dashboard() {
     getUser()
   }, [router])
 
+  useEffect(() => {
+    if (user) {
+      fetchUsername(user.id)
+    }
+  }, [user])
 
   const fetchUsername = async (userId: string) => {
     try {
@@ -71,24 +75,18 @@ export default function Dashboard() {
     }
   }
 
-  useEffect(() => {
-    if (user) {
-      fetchUsername(user.id)
-    }
-  }, [user])
-
-  const fetchWatchHistory = useCallback(async (userId: string) => {
+  const fetchWatchHistory = async (userId: string) => {
     console.log('fetchWatchHistory called', userId)
     try {
       const { data: watchStatusData, error: watchStatusError } = await supabase
         .from('video_watch_status')
-        .select('video_id, completion_rate')
+        .select('video_id, completion_rate, last_watched_at')
         .eq('user_id', userId)
         .order('last_watched_at', { ascending: false })
         .limit(3)
 
-      console.log('supabase query data (watchStatusData)', watchStatusData)
-      console.log('supabase query error (watchStatusError)', watchStatusError)
+      console.log('watchStatusData:', watchStatusData)
+      console.log('watchStatusError:', watchStatusError)
 
       if (watchStatusError) {
         console.error('Error fetching watch history:', watchStatusError)
@@ -101,14 +99,14 @@ export default function Dashboard() {
         return
       }
 
-      const videoIds = watchStatusData.map(item => item.video_id);
+      const videoIds = watchStatusData.map(item => item.video_id)
       const { data: videosData, error: videosError } = await supabase
         .from('videos')
         .select('id, title, thumbnail_url, chapter_id, sort_order')
         .in('id', videoIds)
 
-      console.log('supabase query data (videosData)', videosData)
-      console.log('supabase query error (videosError)', videosError)
+      console.log('videosData:', videosData)
+      console.log('videosError:', videosError)
 
       if (videosError) {
         console.error('Error fetching videos:', videosError)
@@ -127,11 +125,11 @@ export default function Dashboard() {
           thumbnail_url: video.thumbnail_url,
           chapter_id: video.chapter_id,
           sort_order: video.sort_order
-         };
-        return acc;
-      }, {} as VideoDetails);
+        }
+        return acc
+      }, {} as VideoDetails)
 
-      console.log('videoDetails', videoDetails)
+      console.log('videoDetails:', videoDetails)
 
       const formattedData = watchStatusData.map(item => ({
         video_id: item.video_id,
@@ -142,23 +140,25 @@ export default function Dashboard() {
         },
         chapter_id: videoDetails[item.video_id]?.chapter_id || '',
         sort_order: videoDetails[item.video_id]?.sort_order || 0
-      }));
+      }))
 
-      console.log('formattedData', formattedData)
+      console.log('formattedData:', formattedData)
 
       setWatchHistory(formattedData)
-      console.log('watchHistory', watchHistory)
     } catch (error) {
       console.error('Error in fetchWatchHistory:', error)
       setWatchHistory([])
     }
-  }, [])
-
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
   }
+
+  useEffect(() => {
+    console.log('Updated watchHistory:', watchHistory)
+  }, [watchHistory])
 
   if (!user) return null
 

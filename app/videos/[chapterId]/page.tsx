@@ -1,3 +1,4 @@
+// app/videos/[chapterId]/page.tsx
 'use client';
 
 import ContentCard from '@/components/ContentCard';
@@ -7,7 +8,30 @@ import { motion } from 'framer-motion';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 
-async function getChapterData(chapterId: string) {
+interface Chapter {
+  id: string;
+  title: string;
+  description: string;
+}
+
+interface Content {
+  id: number;
+  title: string;
+  description: string;
+  thumbnail_url: string;
+  access_level: 'public' | 'authenticated';
+  video_url: string;
+  chapter_id: number;
+  sort_order: number;
+}
+
+interface ChapterData {
+  chapter: Chapter;
+  contents: Content[];
+}
+
+
+async function getChapterData(chapterId: string): Promise<ChapterData | null> {
   const { data: chapter, error: chapterError } = await supabase
     .from('chapters')
     .select('id, title, description')
@@ -21,10 +45,10 @@ async function getChapterData(chapterId: string) {
 
   const { data: contents, error: contentsError } = await supabase
     .from('videos')
-    .select('id, title, description, thumbnail_url, access_level')
+    .select('id, title, description, thumbnail_url, access_level, video_url, chapter_id, sort_order')
     .eq('chapter_id', chapterId)
     .eq('is_deleted', false)
-    .order('id', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (contentsError) {
     console.error('Error fetching contents:', contentsError);
@@ -36,16 +60,19 @@ async function getChapterData(chapterId: string) {
 
 export default function ChapterPage({ params }: { params: { chapterId: string } }) {
   
-  const [data, setData] = React.useState(null);
+  const [data, setData] = React.useState<ChapterData | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
+  const [error, setError] = React.useState<unknown>(null);
 
   React.useEffect(() => {
     async function fetchData() {
       try {
+        console.log("Fetching data for chapterId:", params.chapterId);
         const chapterData = await getChapterData(params.chapterId);
+        console.log("Fetched data:", chapterData);
         setData(chapterData);
       } catch (e) {
+        console.error("Error fetching data:", e);
         setError(e);
       } finally {
         setLoading(false);
@@ -227,7 +254,16 @@ export default function ChapterPage({ params }: { params: { chapterId: string } 
               transition={{ duration: 0.3 }}
               className="transform transition-all duration-300 hover:shadow-2xl"
             >
-              <ContentCard content={content} chapterId={chapter.id} />
+              <ContentCard content={{
+                id: content.id,
+                title: content.title,
+                description: content.description,
+                video_url: content.video_url,
+                chapter_id: content.chapter_id,
+                access_level: content.access_level,
+                thumbnail_url: content.thumbnail_url,
+                sort_order: content.sort_order,
+              }} chapterId={parseInt(chapter.id, 10)} />
             </motion.div>
           ))}
         </motion.div>

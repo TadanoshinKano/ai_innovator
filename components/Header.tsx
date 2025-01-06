@@ -1,14 +1,16 @@
+// components/Header.tsx
+
 'use client'
 
 import Link from 'next/link'
-import { useAuth } from '../components/AuthContext'
-import { supabase } from '../app/lib/supabase'
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react' // フックをインポート
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 
 export default function Header() {
-  const { user, loading } = useAuth()
+  const supabase = useSupabaseClient() // Supabase クライアントを取得
+  const session = useSession() // セッション情報を取得
   const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -16,6 +18,10 @@ export default function Header() {
     await supabase.auth.signOut()
     router.push('/')
   }
+
+  // ユーザーの認証状態とロード状態を管理
+  const user = session?.user ?? null
+  const loading = session === undefined
 
   return (
     // fixed を sticky に変更
@@ -64,7 +70,7 @@ export default function Header() {
           <nav className="hidden md:block">
             <ul className="flex items-center space-x-8 text-white font-medium">
               {loading ? (
-                <li >
+                <li>
                   <span className="text-gray-300">Loading...</span>
                 </li>
               ) : user ? (
@@ -118,7 +124,7 @@ export default function Header() {
                     <Link href="/register">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileTap={{ scale: 0.98 }}
                         className="bg-white text-orange-600 font-bold py-2.5 px-6 rounded-full hover:bg-orange-50 transition-all duration-300 shadow-md hover:shadow-lg"
                       >
                         新規登録
@@ -204,7 +210,7 @@ export default function Header() {
                         >
                           <motion.button
                             whileTap={{ scale: 0.95 }}
-                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                            className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold py-3 px-6 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg"
                           >
                             新規登録
                           </motion.button>

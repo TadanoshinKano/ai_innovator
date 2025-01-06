@@ -1,8 +1,10 @@
+// app/register/page.tsx
+
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabase'
+import { useSupabaseClient } from '@supabase/auth-helpers-react' // フックをインポート
 import { motion } from 'framer-motion'
 import { AuthError } from '@supabase/supabase-js';
 
@@ -11,6 +13,7 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const supabase = useSupabaseClient() // フックを使用してクライアントを取得
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()

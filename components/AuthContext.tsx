@@ -1,54 +1,56 @@
-'use client'
+// // components/AuthContext.tsx
 
-import React, { createContext, useState, useEffect, useContext } from 'react'
-import { supabase } from '../app/lib/supabase'
-import { User } from '@supabase/supabase-js'
+// 'use client'
 
-type AuthContextType = {
-  user: User | null
-  loading: boolean
-}
+// import React, { createContext, useState, useEffect, useContext } from 'react'
+// import { supabase } from '../app/lib/supabase'
+// import { User } from '@supabase/supabase-js'
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true })
+// type AuthContextType = {
+//   user: User | null
+//   loading: boolean
+// }
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+// const AuthContext = createContext<AuthContextType>({ user: null, loading: true })
 
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      } catch (error) {
-        console.error("Error fetching user:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    getUser()
+// export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+//   const [user, setUser] = useState<User | null>(null)
+//   const [loading, setLoading] = useState(true)
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        setUser(session?.user ?? null)
-      } catch (error) {
-        console.error("Error in auth state change:", error)
-      } finally {
-        setLoading(false)
-      }
-    })
+//   useEffect(() => {
+//     const getUser = async () => {
+//       try {
+//         const { data: { user } } = await supabase.auth.getUser()
+//         setUser(user)
+//       } catch (error) {
+//         console.error("Error fetching user:", error)
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+//     getUser()
 
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [])
+//     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+//       try {
+//         setUser(session?.user ?? null)
+//       } catch (error) {
+//         console.error("Error in auth state change:", error)
+//       } finally {
+//         setLoading(false)
+//       }
+//     })
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
+//     return () => {
+//       authListener.subscription.unsubscribe()
+//     }
+//   }, [])
 
-export const useAuth = () => useContext(AuthContext)
+//   return (
+//     <AuthContext.Provider value={{ user, loading }}>
+//       {children}
+//     </AuthContext.Provider>
+//   )
+// }
+
+// export const useAuth = () => useContext(AuthContext)
 

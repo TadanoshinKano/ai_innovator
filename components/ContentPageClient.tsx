@@ -1,11 +1,14 @@
+// components/ContentPageClient.tsx
 'use client';
 
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '../app/lib/supabase';
 import VideoPlayer from '@/components/VideoPlayer';
 import Link from 'next/link';
 import Head from 'next/head';
+import { Session } from '@supabase/supabase-js';
+import ChapterCard from './ChapterCard';
 
 interface Content {
   id: number;
@@ -15,17 +18,32 @@ interface Content {
   chapter_id: number;
   access_level: 'public' | 'authenticated';
   thumbnail_url?: string;
+  sort_order: number;
+}
+
+interface Profile {
+  role: string;
 }
 
 const ContentPageClient = () => {
-  const router = useRouter();
-  const params = useParams();
-  const chapterId = params?.chapterId as string;
-  const contentId = params?.contentId as string;
+  const params = useParams<{ chapterId: string; contentId: string }>();
+  const chapterIdParam = params?.chapterId;
+  const contentIdParam = params?.contentId;
   const [content, setContent] = useState<Content | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [nextContent, setNextContent] = useState<Content | null>(null); // 次のコンテンツ
+
+  // 現在のチャプターIDとコンテンツIDを数値に変換
+  const currentChapterId = chapterIdParam ? parseInt(chapterIdParam, 10) : null;
+  const currentContentId = contentIdParam ? parseInt(contentIdParam, 10) : null;
+
+  // デバッグ用ログ
+  useEffect(() => {
+    console.log('currentChapterId:', currentChapterId);
+    console.log('currentContentId:', currentContentId);
+  }, [currentChapterId, currentContentId]);
 
   useEffect(() => {
     // セッションの取得
@@ -43,12 +61,9 @@ const ContentPageClient = () => {
   }, []);
 
   useEffect(() => {
-    if (chapterId && contentId) {
+    if (currentChapterId !== null && currentContentId !== null) {
       const fetchContent = async () => {
-        const chapterIdNum = parseInt(chapterId, 10);
-        const contentIdNum = parseInt(contentId, 10);
-
-        if (isNaN(chapterIdNum) || isNaN(contentIdNum)) {
+        if (isNaN(currentChapterId) || isNaN(currentContentId)) {
           setErrorMessage('無効なパラメータです。');
           setLoading(false);
           return;
@@ -57,9 +72,9 @@ const ContentPageClient = () => {
         const { data, error } = await supabase
           .from('videos')
           .select('*')
-          .eq('id', contentIdNum)
+          .eq('id', currentContentId)
           .eq('is_deleted', false)
-          .eq('chapter_id', chapterIdNum)
+          .eq('chapter_id', currentChapterId)
           .single();
 
         if (error || !data) {
@@ -79,7 +94,7 @@ const ContentPageClient = () => {
               .from('profiles')
               .select('role')
               .eq('id', session.user.id)
-              .single();
+              .single<Profile>();
 
             if (userError || !user || user.role !== 'authenticated') {
               setErrorMessage('このコンテンツにアクセスする権限がありません。');
@@ -96,7 +111,41 @@ const ContentPageClient = () => {
 
       fetchContent();
     }
-  }, [chapterId, contentId, session]);
+  }, [currentChapterId, currentContentId, session]);
+
+  useEffect(() => {
+    const fetchNextContent = async () => {
+      if (!content || currentChapterId === null) return;
+      const currentSortOrder = content.sort_order;
+
+      try {
+        const { data, error } = await supabase
+          .from('videos')
+          .select('*')
+          .eq('chapter_id', currentChapterId)
+          .gt('sort_order', currentSortOrder)
+          .order('sort_order', { ascending: true })
+          .limit(1)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            setNextContent(null); // 次の動画がない場合はnullを設定
+            return;
+          }
+          console.error("Failed to fetch next content:", error);
+          setNextContent(null);
+          return;
+        }
+        setNextContent(data);
+      } catch (error) {
+        console.error("Failed to fetch next content:", error);
+        setNextContent(null);
+      }
+    };
+
+    fetchNextContent();
+  }, [content, currentChapterId]);
 
   if (loading) {
     return <div className="container mx-auto px-4 py-4 sm:py-6 md:py-8">読み込み中...</div>;
@@ -143,10 +192,19 @@ const ContentPageClient = () => {
           <div className="lg:w-1/4 mt-4 lg:mt-0">
             <div className="bg-gray-50 p-4 rounded-lg shadow-md">
               <h2 className="text-lg font-semibold mb-2 text-gray-800">次の動画</h2>
-              <p className="text-sm text-gray-600">
-                次の動画はまだありません。
-              </p>
-              {/* TODO: 次の動画のリストを表示する */}
+              {!nextContent && (
+                <p className="text-sm text-gray-600">
+                  次の動画はまだありません。
+                </p>
+              )}
+              {nextContent && (
+                <div className="mt-8">
+                  {/* currentChapterId を渡す */}
+                  {nextContent && nextContent.thumbnail_url && (
+                    <ChapterCard chapter={{...nextContent, thumbnail_url: nextContent.thumbnail_url}} currentChapterId={currentChapterId || 0} />
+                  )}
+                </div>
+              )}
             </div>
             <div className="mt-4 bg-gray-50 p-4 rounded-lg shadow-md">
               <div className="flex items-center mb-2">
@@ -161,7 +219,7 @@ const ContentPageClient = () => {
               {/* TODO: 教材へのリンクを挿入する */}
             </div>
             <div className="mt-4">
-              <Link href={`/videos/${content.chapter_id}`} className="text-blue-500 hover:underline text-sm sm:text-base">
+              <Link href={`/videos/${currentChapterId}`} className="text-blue-500 hover:underline text-sm sm:text-base">
                 章に戻る
               </Link>
             </div>
