@@ -12,8 +12,6 @@ export default function ProfilePage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [error, setError] = useState<string | null>(null)
-
   const user = session?.user ?? null
   const loading = session === undefined
 

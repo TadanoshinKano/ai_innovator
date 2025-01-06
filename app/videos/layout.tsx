@@ -20,7 +20,6 @@ async function getChapters() {
 }
 
 export default async function VideosLayout({ children }: { children: React.ReactNode }) {
-    const chapters = await getChapters();
     return (
         <Suspense fallback={<p>Loading...</p>}>
             {children}

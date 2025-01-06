@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import React from 'react';
+import Image from 'next/image';
 
 interface Chapter {
   id: string;
@@ -73,10 +74,12 @@ function VideosPage({ chapters }: { chapters: Chapter[] }) {
                     whileHover={{ rotate: 5 }}
                     className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 mr-4 border-2 border-gray-300"
                   >
-                    <img
+                    <Image
                       src={chapter.thumbnail_url}
                       alt={chapter.title}
                       className="w-full h-full object-cover"
+                      width={80}
+                      height={80}
                     />
                   </motion.div>
                   <div>

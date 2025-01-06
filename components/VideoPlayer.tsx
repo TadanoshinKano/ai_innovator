@@ -165,7 +165,7 @@ export default function VideoPlayer({
   /**
    * 動画読み込みエラー
    */
-  const handleError = (e: any) => {
+  const handleError = (e: Error) => {
     setError('動画の読み込みに失敗しました。');
     console.error('動画の読み込みエラー:', e);
   };
