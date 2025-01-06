@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
+import { AuthError } from '@supabase/supabase-js';
 
 export default function Register() {
   const [email, setEmail] = useState('')
@@ -14,12 +15,13 @@ export default function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { error } = await supabase.auth.signUp({ email, password })
       if (error) throw error
       router.push('/login')
     } catch (error) {
-      alert("エラー発生: " + (error as Error).message)
-      setError((error as Error).message)
+      const authError = error as AuthError;
+      alert("エラー発生: " + authError.message)
+      setError(authError.message)
     }
   }
 

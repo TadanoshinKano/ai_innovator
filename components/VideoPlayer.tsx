@@ -7,25 +7,23 @@ import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 interface VideoPlayerProps {
   videoUrl: string;
   onTimeUpdate?: (currentTime: number) => void;
-  thumbnail_url?: string; // 使う場合はlightで指定できます
+  thumbnail_url?: string;
   videoId: number;
 }
 
 export default function VideoPlayer({
   videoUrl,
   onTimeUpdate,
-  thumbnail_url,
   videoId,
 }: VideoPlayerProps) {
   const playerRef = useRef<ReactPlayer>(null);
 
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [duration, setDuration] = useState<number>(0);
   const [lastPosition, setLastPosition] = useState<number>(0);
-  const [watchCount, setWatchCount] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
+  // const [watchCount, setWatchCount] = useState<number>(0);
+  // const [completed, setCompleted] = useState<boolean>(false);
 
   // 「一度だけシークする」ためのフラグ
   const [hasSeeked, setHasSeeked] = useState<boolean>(false);
@@ -71,8 +69,8 @@ export default function VideoPlayer({
       }
     } else if (data) {
       setLastPosition(data.last_position);
-      setWatchCount(data.watch_count);
-      setCompleted(data.completed);
+      // setWatchCount(data.watch_count);
+      // setCompleted(data.completed);
     }
   };
 
@@ -99,7 +97,7 @@ export default function VideoPlayer({
     } else {
       // 新規の場合は0秒からスタート
       setLastPosition(0);
-      setWatchCount(1);
+      // setWatchCount(1);
     }
   };
 
@@ -142,8 +140,8 @@ export default function VideoPlayer({
     if (error) {
       console.error('視聴状況の更新に失敗しました。', error);
     } else if (data && data.length > 0) {
-      setWatchCount(data[0].watch_count);
-      setCompleted(isCompleted);
+      // setWatchCount(data[0].watch_count);
+      // setCompleted(isCompleted);
     }
   };
 
@@ -152,7 +150,7 @@ export default function VideoPlayer({
    * 前回の lastPosition に1回だけシーク
    */
   const handleReady = () => {
-    setLoading(false);
+    // setLoading(false);
 
     const player = playerRef.current?.getInternalPlayer();
     if (player instanceof HTMLVideoElement) {
@@ -172,7 +170,7 @@ export default function VideoPlayer({
    * 動画読み込みエラー
    */
   const handleError = (e: any) => {
-    setLoading(false);
+    // setLoading(false);
     setError('動画の読み込みに失敗しました。');
     console.error('動画の読み込みエラー:', e);
   };

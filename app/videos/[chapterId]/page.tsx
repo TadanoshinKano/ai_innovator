@@ -6,19 +6,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-interface Chapter {
-  id: number;
-  title: string;
-  description: string;
-}
-
-interface Content {
-  id: number;
-  title: string;
-  description: string;
-  thumbnail_url?: string;
-  access_level: 'public' | 'authenticated';
-}
 
 async function getChapterData(chapterId: string) {
   const { data: chapter, error: chapterError } = await supabase

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
+import { User } from '@supabase/supabase-js';
 
 interface WatchHistoryItem {
   video_id: string
@@ -28,7 +29,7 @@ interface VideoDetails {
 
 
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [watchHistory, setWatchHistory] = useState<WatchHistoryItem[]>([])
   const [username, setUsername] = useState<string | null>(null)
   const router = useRouter()

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
+import { AuthError } from '@supabase/supabase-js';
 
 const ResetPasswordPage: React.FC = () => {
   const searchParams = useSearchParams();
@@ -45,7 +46,7 @@ const ResetPasswordPage: React.FC = () => {
     setLoading(false);
 
     if (error) {
-      setMessage(`エラーが発生しました: ${error.message}`);
+      setMessage(`エラーが発生しました: ${(error as AuthError).message}`);
     } else {
       setMessage('パスワードが正常にリセットされました。ログインしてください。');
       // 必要に応じてリダイレクト
