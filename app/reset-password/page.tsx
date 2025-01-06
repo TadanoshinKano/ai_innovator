@@ -1,13 +1,12 @@
 // /school_apps/app/reset-password/page.tsx
 "use client"; 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { AuthError } from '@supabase/supabase-js';
 
 const ResetPasswordPage: React.FC = () => {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

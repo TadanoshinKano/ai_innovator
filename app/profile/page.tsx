@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../components/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -11,18 +11,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('')
   const router = useRouter()
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    } else if (user) {
-      setEmail(user.email || '')
-      console.log('Auth user id:', user?.id)
-      console.log('Checking profiles for user_id:', String(user?.id))
-      fetchUserProfile()
-    }
-  }, [user, loading, router])
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -47,7 +36,18 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
-  }
+  }, [user?.id, supabase])
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    } else if (user) {
+      setEmail(user.email || '')
+      console.log('Auth user id:', user?.id)
+      console.log('Checking profiles for user_id:', String(user?.id))
+      fetchUserProfile()
+    }
+  }, [user, loading, router, fetchUserProfile])
 
 
   const handleSubmit = async (e: React.FormEvent) => {

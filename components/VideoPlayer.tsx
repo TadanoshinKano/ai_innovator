@@ -205,7 +205,7 @@ export default function VideoPlayer({
                 // ▼ ダウンロード/ピクチャインピクチャを無効化する設定
                 controlsList: 'nodownload',
                 disablePictureInPicture: true,
-                onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+                onContextMenu: (e: React.MouseEvent<HTMLVideoElement>) => e.preventDefault(),
               },
             },
           }}

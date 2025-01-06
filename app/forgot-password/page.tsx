@@ -29,8 +29,12 @@ export default function ForgotPasswordPage() {
       } else {
         setMessage('パスワードリセットのメールを送信しました。メールをご確認ください。');
       }
-    } catch (err: any) {
-      setError(err.message || 'パスワードリセットに失敗しました。');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'パスワードリセットに失敗しました。');
+      } else {
+        setError('パスワードリセットに失敗しました。');
+      }
     }
   };
 

@@ -1,6 +1,7 @@
 // components/ChapterCard.tsx
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 interface Chapter {
   id: number;
@@ -21,10 +22,12 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter }) => {
         className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-orange-100"
       >
         <div className="relative">
-          <img
+          <Image
             src={chapter.thumbnail_url}
             alt={chapter.title}
             className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-500"
+            width={500}
+            height={300}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         </div>

@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-
+import React from 'react';
 
 async function getChapterData(chapterId: string) {
   const { data: chapter, error: chapterError } = await supabase
@@ -34,8 +34,80 @@ async function getChapterData(chapterId: string) {
   return { chapter, contents: contents || [] };
 }
 
-export default async function ChapterPage({ params }: { params: { chapterId: string } }) {
-  const data = await getChapterData(params.chapterId);
+export default function ChapterPage({ params }: { params: { chapterId: string } }) {
+  
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        const chapterData = await getChapterData(params.chapterId);
+        setData(chapterData);
+      } catch (e) {
+        setError(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [params.chapterId]);
+
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-12"
+      >
+        <motion.div
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="text-center p-8 bg-gray-100 rounded-3xl shadow-lg border border-gray-200 max-w-2xl mx-auto backdrop-blur-sm"
+        >
+          <p className="text-gray-600 text-xl font-medium">ロード中...</p>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-12"
+      >
+        <motion.div
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="text-center p-8 bg-red-100 rounded-3xl shadow-lg border border-red-200 max-w-2xl mx-auto backdrop-blur-sm"
+        >
+          <p className="text-red-600 text-xl font-medium">エラーが発生しました。</p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-10 text-center"
+        >
+          <Link
+            className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors duration-200 text-lg"
+            href="/videos"
+          >
+            講座一覧に戻る
+          </Link>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
 
   if (!data) {
     return (

@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User } from '@supabase/supabase-js';
+import Image from 'next/image';
 
 interface WatchHistoryItem {
   video_id: string
@@ -76,7 +77,7 @@ export default function Dashboard() {
     }
   }, [user])
 
-  const fetchWatchHistory = async (userId: string) => {
+  const fetchWatchHistory = useCallback(async (userId: string) => {
     console.log('fetchWatchHistory called', userId)
     try {
       const { data: watchStatusData, error: watchStatusError } = await supabase
@@ -151,7 +152,7 @@ export default function Dashboard() {
       console.error('Error in fetchWatchHistory:', error)
       setWatchHistory([])
     }
-  }
+  }, [])
 
 
   const handleLogout = async () => {
@@ -243,9 +244,11 @@ export default function Dashboard() {
                     transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
                     className="bg-white bg-opacity-70 rounded-lg shadow-md p-4 flex flex-col items-center"
                   >
-                    <img 
+                    <Image 
                       src={item.video.thumbnail_url} 
                       alt={item.video.title} 
+                      width={300}
+                      height={170}
                       className="w-full h-auto rounded-md mb-2"
                     />
                     <Link

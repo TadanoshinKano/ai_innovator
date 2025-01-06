@@ -1,5 +1,6 @@
 // components/ContentCard.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Content {
   id: number;
@@ -19,10 +20,12 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, chapterId }) => {
     <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 transform hover:scale-105 border-2 border-gray-300 w-full">
       <div className="relative">
         {content.thumbnail_url && (
-          <img
+          <Image
             src={content.thumbnail_url}
             alt={content.title}
             className="w-full h-32 sm:h-40 md:h-48 lg:h-56 object-cover"
+            width={500}
+            height={300}
           />
         )}
         {content.access_level === 'authenticated' && (
